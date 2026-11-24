@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Просто обычный город РП — официальный сайт</title>
+<meta name="description" content="Живой город на Roblox: работы, машины, полиция, кафе, телефон GorodOS. Версия 0.15.0 — задания, уровни, переводы денег, бонус, инвентарь, единый телефон!">
+<style>
+  :root{
+    --bg:#070a12; --bg2:#0d1220; --card:#131a2c; --card2:#182038;
+    --accent:#3ddc84; --accent2:#6aa6ff; --gold:#ffd166;
+    --text:#eef1f8; --muted:#98a2bb; --line:#242e4d; --radius:18px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,Arial,sans-serif;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--bg); color:var(--text); line-height:1.65; overflow-x:hidden;}
+
+  /* фоновое свечение */
+  .glow{position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background:
+      radial-gradient(600px 400px at 15% 10%, rgba(61,220,132,.08), transparent 60%),
+      radial-gradient(700px 500px at 85% 25%, rgba(106,166,255,.09), transparent 60%),
+      radial-gradient(800px 600px at 50% 90%, rgba(255,209,102,.05), transparent 60%);}
+
+  /* 0.8.0: анимированный градиент hero + парящие карточки */
+  @keyframes drift{0%{background-position:0% 0%}50%{background-position:100% 100%}100%{background-position:0% 0%}}
+  .hero h1 span{background:linear-gradient(90deg,var(--accent),var(--accent2),var(--gold),var(--accent)); background-size:300% 300%; animation:drift 8s ease-in-out infinite; -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .card, .zone, .t-item{transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease;}
+  .card:hover, .zone:hover{transform:translateY(-6px) scale(1.02); box-shadow:0 18px 40px rgba(61,220,132,.15); border-color:var(--accent);}
+  .t-item:hover{transform:translateX(6px); border-color:var(--accent2);}
+  .train-line{display:flex; align-items:center; gap:0; margin:26px 0 6px; font-size:26px; user-select:none;}
+  .train-line .stop{background:#101a30; border:1px solid #2a3a63; border-radius:10px; padding:6px 14px; font-size:13px; color:var(--text); white-space:nowrap;}
+  .train-line .rail{flex:1; height:3px; background:repeating-linear-gradient(90deg,var(--accent2) 0 12px, transparent 12px 20px); position:relative; min-width:40px;}
+  .train-line .train{position:absolute; right:-6px; top:-16px; font-size:22px; animation:ride 6s linear infinite;}
+  @keyframes ride{0%{left:-10%}100%{left:96%}}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  .phone-wrap .phone{animation:float 5s ease-in-out infinite;}
+
+  a{color:var(--accent2); text-decoration:none;}
+  a:hover{text-decoration:underline;}
+
+  header{position:sticky; top:0; background:rgba(7,10,18,.85); backdrop-filter:blur(12px); border-bottom:1px solid var(--line); z-index:10;}
+  nav{max-width:1100px; margin:0 auto; display:flex; align-items:center; gap:24px; padding:14px 20px;}
+  nav .logo{font-weight:800; font-size:18px; letter-spacing:.4px; display:flex; align-items:center; gap:8px;}
+  nav .logo span{color:var(--accent);}
+  nav ul{list-style:none; display:flex; gap:20px; margin-left:auto; flex-wrap:wrap;}
+  nav ul a{color:var(--muted); font-size:14px; transition:color .2s;}
+  nav ul a:hover{color:var(--text); text-decoration:none;}
+
+  .btn{display:inline-block; padding:12px 26px; border-radius:14px; font-weight:700; font-size:15px; transition:transform .15s, filter .15s;}
+  .btn:hover{transform:translateY(-2px); filter:brightness(1.12); text-decoration:none;}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),#22b367); color:#05281a; box-shadow:0 6px 24px rgba(61,220,132,.35);}
+  .btn-ghost{border:1px solid var(--line); color:var(--text); background:rgba(255,255,255,.03);}
+
+  .hero{max-width:1100px; margin:0 auto; padding:80px 20px 60px; display:grid; grid-template-columns:1.15fr .85fr; gap:48px; align-items:center;}
+  .hero .ver{display:inline-flex; align-items:center; gap:8px; background:#101a30; border:1px solid #2a3a63; color:var(--accent2); border-radius:24px; padding:5px 16px; font-size:13px; font-weight:600; margin-bottom:16px;}
+  .hero .ver i{width:8px; height:8px; border-radius:50%; background:var(--accent); box-shadow:0 0 8px var(--accent); animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .hero h1{font-size:46px; line-height:1.12; font-weight:800; letter-spacing:-.5px;}
+  .hero h1 span{background:linear-gradient(90deg,var(--accent),var(--accent2),var(--gold),var(--accent)); background-size:300% 300%; animation:drift 8s ease-in-out infinite; -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .hero p{color:var(--muted); margin:18px 0 28px; font-size:17px; max-width:520px;}
+  .hero .cta{display:flex; gap:14px; flex-wrap:wrap;}
+
+  .stats{display:flex; gap:28px; margin-top:34px; flex-wrap:wrap;}
+  .stat b{font-size:22px; color:var(--accent); display:block;}
+  .stat span{color:var(--muted); font-size:13px;}
+
+  /* телефон */
+  .phone-wrap{display:flex; justify-content:center; perspective:900px;}
+  .phone{background:linear-gradient(160deg,#1a2340,#0c1120); border:3px solid #2c3a66; border-radius:32px; padding:14px; width:260px; transform:rotateY(-8deg); box-shadow:0 30px 70px rgba(0,0,0,.6), 0 0 60px rgba(106,166,255,.12); transition:transform .5s;}
+  .phone:hover{transform:rotateY(0);}
+  .phone .screen{background:linear-gradient(170deg,#182142,#0d1224); border-radius:22px; height:460px; padding:14px; overflow:hidden;}
+  .phone .notch{width:80px; height:6px; background:#2c3a66; border-radius:4px; margin:2px auto 12px;}
+  .status{display:flex; justify-content:space-between; font-size:11px; color:var(--accent2); margin-bottom:14px;}
+  .apps{display:grid; grid-template-columns:repeat(4,1fr); gap:10px;}
+  .app{background:#1d2647; border:1px solid #2c3a66; border-radius:14px; height:56px; display:flex; align-items:center; justify-content:center; font-size:22px; transition:transform .15s, background .15s; cursor:default;}
+  .app:hover{transform:scale(1.1); background:#26325c;}
+  .app-label{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:8px;}
+  .app-label span{font-size:9px; color:var(--muted); text-align:center;}
+
+  section{max-width:1100px; margin:0 auto; padding:56px 20px;}
+  .sec-head{margin-bottom:30px;}
+  h2{font-size:30px; letter-spacing:-.3px;}
+  h2 em{font-style:normal; color:var(--accent);}
+  .sub{color:var(--muted); margin-top:4px;}
+
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:18px;}
+  .card{background:linear-gradient(160deg,var(--card),var(--bg2)); border:1px solid var(--line); border-radius:var(--radius); padding:24px; transition:transform .2s, border-color .2s;}
+  .card:hover{transform:translateY(-4px); border-color:#33427a;}
+  .card h3{font-size:17px; margin-bottom:8px;}
+  .card p{color:var(--muted); font-size:14px;}
+  .emoji{font-size:30px; display:block; margin-bottom:12px;}
+
+  .badge{display:inline-block; background:rgba(61,220,132,.12); color:var(--accent); border:1px solid rgba(61,220,132,.35); font-size:11px; font-weight:700; padding:2px 10px; border-radius:12px; margin-left:8px; vertical-align:middle;}
+
+  .timeline{border-left:2px solid #2a3a63; margin-left:10px; padding-left:26px;}
+  .t-item{position:relative; margin-bottom:30px;}
+  .t-item::before{content:""; position:absolute; left:-33px; top:6px; width:13px; height:13px; border-radius:50%; background:var(--accent); box-shadow:0 0 12px var(--accent);}
+  .t-item.old::before{background:#3a4a7a; box-shadow:none;}
+  .t-item .ver{color:var(--accent); font-weight:700; font-size:16px;}
+  .t-item.old .ver{color:#8ea0c8;}
+  .t-item p{color:var(--muted); font-size:14px; white-space:pre-line; margin-top:6px;}
+
+  .map-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:14px; margin-top:20px;}
+  .zone{background:linear-gradient(160deg,#131a30,#0d1220); border:1px solid var(--line); border-radius:14px; padding:18px; font-size:14px; color:var(--muted); transition:border-color .2s;}
+  .zone:hover{border-color:#33427a;}
+  .zone b{color:var(--text); display:block; margin-bottom:6px; font-size:15px;}
+
+  footer{border-top:1px solid var(--line); margin-top:50px; padding:34px 20px; text-align:center; color:var(--muted); font-size:13px;}
+  footer b{color:var(--text);}
+  .foot-links{margin-top:10px;}
+  .foot-links a{margin:0 10px;}
+
+  @media(max-width:860px){
+    .hero{grid-template-columns:1fr; padding-top:48px; text-align:center;}
+    .hero p{margin-inline:auto;}
+    .hero .cta{justify-content:center;}
+    .stats{justify-content:center;}
+    .hero h1{font-size:34px;}
+    .phone{transform:none;}
+  }
+</style>
+</head>
+<body>
+<div class="glow"></div>
+
+<header>
+  <nav>
+    <div class="logo">🏙️ Просто обычный <span>город РП</span></div>
+    <ul>
+      <li><a href="#features">Возможности</a></li>
+      <li><a href="#updates">Обновления</a></li>
+      <li><a href="#map">Карта</a></li>
+      <li><a href="#phone">Телефон</a></li>
+    </ul>
+    <a class="btn btn-primary" href="https://www.roblox.com/games/103981113991707" target="_blank" rel="noopener">▶ Играть</a>
+  </nav>
+</header>
+
+<div class="hero">
+  <div>
+    <span class="ver"><i></i> Версия 0.15.0 · «Новые приложения»</span>
+    <h1>Просто обычный<br><span>город РП</span></h1>
+    <p>Живой город на Roblox: работа, машины с вождением и <b>арендой из телефона</b>, полиция
+       через собеседование, АЗС с НПС-машинами, банк с кредитом, светофоры и зебры,
+       <b>ЖК с настоящими лифтами</b>, телефон GorodOS с настоящим 2G–5G и электричка на 300 км.</p>
+    <div class="cta">
+      <a class="btn btn-primary" href="https://www.roblox.com/games/103981113991707" target="_blank" rel="noopener">▶ Играть бесплатно</a>
+      <a class="btn btn-ghost" href="#features">Узнать больше ↓</a>
+    </div>
+    <div class="train-line">
+      <span class="stop">🏙 Юг</span><span class="rail"><span class="train">🚆</span></span><span class="stop">❄️ Северный</span><span class="rail"><span class="train">🚆</span></span><span class="stop">🌲 Лесной вокзал</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>2</b><span>города</span></div>
+      <div class="stat"><b>300 км</b><span>электричка</span></div>
+      <div class="stat"><b>3</b><span>станции</span></div>
+      <div class="stat"><b>7+</b><span>работ</span></div>
+      <div class="stat"><b>0.15.0</b><span>версия</span></div>
+    </div>
+  </div>
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="screen">
+        <div class="notch"></div>
+        <div class="status"><span>📶 5G</span><span>🔋 92%</span><span>💰 12 450₽</span></div>
+        <div class="apps">
+          <div class="app">💼</div><div class="app">🍗</div><div class="app">🏠</div><div class="app">📶</div>
+          <div class="app">🗺</div><div class="app">💬</div><div class="app">❤️</div><div class="app">🚌</div>
+          <div class="app">🌤</div><div class="app">📦</div><div class="app">🚗</div><div class="app">🚆</div>
+        </div>
+        <div class="app-label">
+          <span>Работы</span><span>Еда</span><span>Банк</span><span>Оператор</span>
+          <span>Карта</span><span>СМС</span><span>Здоровье</span><span>Транспорт</span>
+          <span>Погода</span><span>Курьер</span><span>Гараж</span><span>Электричка</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section id="features">
+  <div class="sec-head">
+    <h2>Что есть <em>в игре</em></h2>
+    <p class="sub">Постоянные обновления — сейчас версия 0.15.0 «Новые приложения»</p>
+  </div>
+  <div class="grid">
+    <div class="card"><span class="emoji">🚗</span><h3>Аренда машин<span class="badge">NEW</span></h3><p>Бесплатная аренда на 5 минут прямо из телефона: машина приезжает к площадке, а стрелка на экране показывает, где она стоит.</p></div>
+    <div class="card"><span class="emoji">⛽</span><h3>АЗС с НПС<span class="badge">NEW</span></h3><p>Живая заправка: НПС-машины сами подъезжают к колонкам. Возьми канистру и заправь — получишь 50₽ за работу.</p></div>
+    <div class="card"><span class="emoji">👮</span><h3>Полиция по собеседованию<span class="badge">NEW</span></h3><p>Пройди 3 вопроса у стола собеседований — получишь форму, дубинку и наручники. Арестовывай нарушителей и сажай в тюрьму.</p></div>
+    <div class="card"><span class="emoji">💳</span><h3>Кредит в банке<span class="badge">NEW</span></h3><p>Возьми 1000₽ на 5 минут. Не вернул вовремя — полиция заберёт в участок, а долг спишут.</p></div>
+    <div class="card"><span class="emoji">🌦</span><h3>Погода в телефоне<span class="badge">NEW</span></h3><p>Меняй время суток и туман прямо из приложения. Управление доступно админу и тестерам по ПИН-коду.</p></div>
+    <div class="card"><span class="emoji">🎮</span><h3>Вид от первого лица<span class="badge">NEW</span></h3><p>Полноценное первое лицо с видимым телом, режим приседа (C) и свободная мышь (Ctrl) — удобно и на ПК, и на телефоне.</p></div>
+    <div class="card"><span class="emoji">🚗</span><h3>Автосалон и вождение</h3><p>Покупай машину (Ветка, Приора, Спорт GT) и вызывай через приложение «Гараж». Газ, тормоз и повороты — полноценное вождение по городу и шоссе.</p></div>
+    <div class="card"><span class="emoji">🛣</span><h3>Дороги и светофоры<span class="badge">NEW</span></h3><p>Зебры на перекрёстках, работающие светофоры, парковки у магазинов. Улицы юга стали как настоящий город.</p></div>
+    <div class="card"><span class="emoji">🏢</span><h3>ЖК и лифты<span class="badge">NEW</span></h3><p>Купи квартиру в ЖК — получи настоящий адрес: улица, дом, квартира. Найди свой подъезд и поднимись на лифте на свой этаж. Никаких телепортов!</p></div>
+    <div class="card"><span class="emoji">🏡</span><h3>Дачи в Дубках<span class="badge">NEW</span></h3><p>Купи дачу в деревне за 5000₽: свой участок, табличка с ником и огород — собирай урожай каждые 5 минут.</p></div>
+    <div class="card"><span class="emoji">💊</span><h3>Аптека «Здоровье+»<span class="badge">NEW</span></h3><p>Таблетки от голода и усталости, антиболезнь. Аптечка в машину для самолечения после аварий.</p></div>
+    <div class="card"><span class="emoji">🧹</span><h3>Уборщик города<span class="badge">NEW</span></h3><p>Новая работа: собирай мусор по улицам — 180₽ за смену из 10 единиц. Лидерборд чистоты.</p></div>
+    <div class="card"><span class="emoji">🎁</span><h3>Ежедневный бонус<span class="badge">NEW</span></h3><p>Колесо фортуны каждый день: 50–500₽, шанс на джекпот 1000₽. Стрик 7 дней подряд — награда ×2.</p></div>
+    <div class="card"><span class="emoji">🚔</span><h3>Полиция и риски</h3><p>Украсть еду в ГорМаге? 35% попасться: штраф 300₽ и розыск. Оплати штраф в участке — или живи честно.</p></div>
+    <div class="card"><span class="emoji">💼</span><h3>Работа и деньги</h3><p>Касса супермаркета, курьерские посылки (200–400₽), удалённая работа в банке. Обзор всех работ — в приложении «Работы».</p></div>
+    <div class="card"><span class="emoji">📱</span><h3>GorodOS</h3><p>Свой телефон: 18+ приложений — банк, карта, СМС, оператор «Gorod» с тарифами 2G–5G, курьер, погода, работы.</p></div>
+    <div class="card"><span class="emoji">💪</span><h3>Выживание</h3><p>Голод, стамина, зарядка телефона на станциях, болезнь, туалет. Не забывай о себе — умрёшь от голода!</p></div>
+    <div class="card"><span class="emoji">☕</span><h3>Кафе «Уютное»</h3><p>Обед за 120₽ (+60 голода) на восточном шоссе. Рядом — автосалон и полицейский участок.</p></div>
+    <div class="card"><span class="emoji">⚡</span><h3>Оптимизация</h3><p>Игра работает даже на слабых ноутбуках: умное освещение, стриминг мира, отключённые тени — FPS выше, лагов меньше.</p></div>
+  </div>
+</section>
+
+<section id="updates">
+  <div class="sec-head">
+    <h2>Обновления</h2>
+    <p class="sub">История версий</p>
+  </div>
+  <div class="timeline">
+    <div class="t-item">
+      <div class="ver">⭐ v0.15.0 «Новые приложения»</div>
+      <p>• Задания дня: 3 задания с наградой 100 / 250 / 500₽
+• Уровни и опыт: 100 XP = уровень, на 3-м — «Золотой телефон»
+• Переводы денег между игроками (только через MoneyLib)
+• Ежедневный бонус 200₽ + 20 XP, раз в 24 часа
+• Инвентарь предметов
+• Всё работает через новый серверный модуль phone_015_system</p>
+    </div>
+    <div class="t-item">
+      <div class="ver">📱 v0.14.0 «Один телефон»</div>
+      <p>• Прокат, кредит, погода и ПИН тестера перенесены в один большой телефон
+• Второй маленький телефон убран
+• Телефон открывается по P и кнопке ☏
+• Два ПИНа админ-консоли: 2606 (владелец), 6777 (тестер)</p>
+    </div>
+    <div class="t-item old">
+      <div class="ver">🚗 v0.13.0 «Новая жизнь»</div>
+      <p>• Аренда машин: бесплатно на 5 минут прямо из телефона, маркер до машины
+• АЗС с НПС-машинами: бери канистру, заправляй — +50₽ за заправку
+• Полиция через собеседование: 3 вопроса → форма, дубинка, наручники, тюрьма
+• Банк: кредит 1000₽ на 5 минут, не вернул — полиция забирает
+• Погода в телефоне: день/вечер/ночь, туман
+• Вид от первого лица и режим приседа (C)
+• ПИН-код тестера для друзей</p>
+    </div>
+    <div class="t-item old">
+      <div class="ver">🏙 v0.10.0 «Городская жизнь»</div>
+      <p>• ЖК вместо квартиры: адрес (улица, дом, квартира) — сам идёшь к дому
+• Лифт на 8 этажей: вызов кнопкой, панель этажей в кабине
+• Подъезды-навесы у башен, таблички улиц: Строителей, Полевая, Северная, пр. Мира
+• Карта в телефоне: только своя квартира, без лишних меток
+• Дачи в Дубках: 5000₽, свой огород (+80₽ урожай)
+• Аптека «Здоровье+»: таблетки, антиболезнь
+• Работа «Уборщик»: 180₽ за смену
+• Ежедневный бонус: колесо фортуны, стрик 7 дней = ×2
+• Лесной вокзал: кафе «Хвойное», доска объявлений, вышка с сундуком</p>
+    </div>
+    <div class="t-item old">
+      <div class="ver">🚆 v0.8.0 «Большая электричка»</div>
+      <p>• Электричка на 300 км: 3 станции — Юг, Северный, Лесной вокзал
+• Поездка от начальной до конечной — ровно 3 минуты
+• Интерьер вагонов: ковёр, столики, поручни, багажные полки
+• Двери вагонов открываются только на стоянке
+• Транзит: на промежуточных остановках не выкидывает
+• Табло показывает направление электрички
+• Дикий лес: холмы, озеро с пляжем, деревня Дубки, полустанок Поляна
+• Казино убрано из телефона</p>
+    </div>
+    <div class="t-item old">
+      <div class="ver">🚑 v0.7.1 «Скорая помощь»</div>
+      <p>• Аварии: сбила машина — тёмный экран, мигалки, рагдолл
+• Палата в больнице, врач: лечиться 500₽ или гипс
+• Игроки могут донести друг друга до больницы</p>
+    </div>
+    <div class="t-item old">
+      <div class="ver">🏙 v0.7.0 «Город оживает»</div>
+      <p>• Дороги юга: зебры, светофоры, парковки, чистка мусора
+• Квартира: кровать, холодильник, ТВ + дверь на улицу
+• Интерьеры: супермаркет, полиция (камера!), витрины салона
+• Оптимизация для слабых ноутов (v0.6.1)</p>
+    </div>
+    <div class="t-item old">
+      <div class="ver">🚗 v0.6.0 «Живой город»</div>
+      <p>• Автосалон «У Ветра»: 3 машины, вызов через Гараж
+• Вождение по шоссе
+• Кражи в ГорМаге (штраф 300₽, розыск)
+• Полицейский участок
+• Кафе «Уютное» (обед 120₽)</p>
+    </div>
+    <div class="t-item old">
+      <div class="ver">🏙 v0.5.0 «Город растёт»</div>
+      <p>• 5 новых приложений: Транспорт, Погода, Курьер, Казино, Работы
+• Курьер: посылки 200–400₽
+• Кольцевые магистрали севера, шоссе между городами
+• Расписание автобусов на остановках</p>
+    </div>
+    <div class="t-item old">
+      <div class="ver">📶 v0.4.8 «GorodOS и связь»</div>
+      <p>• Телефон GorodOS, индикатор сети
+• Оператор Gorod: тарифы 2G/3G/4G/5G и гигабайты
+• Быстрота приложений зависит от тарифа</p>
+    </div>
+    <div class="t-item old">
+      <div class="ver">🛒 v0.4.6–0.4.7</div>
+      <p>• Голод: не поел — умер
+• Магазины и спортзал на севере
+• «Вернуться на улицу» из квартиры
+• Метки на карте</p>
+    </div>
+    <div class="t-item old">
+      <div class="ver">🚉 v0.4.0 «Новый город»</div>
+      <p>• Северный город
+• Электричка между городами
+• Автобус, статуя steqan00</p>
+    </div>
+  </div>
+</section>
+
+<section id="map">
+  <div class="sec-head">
+    <h2>Карта города</h2>
+    <p class="sub">Два города соединены электричкой, автобусом и шоссе</p>
+  </div>
+  <div class="map-grid">
+    <div class="zone"><b>🏙 Южный город (центр)</b>Супермаркеты с полками, касса, работа, квартиры-башни, станция электрички, автобус №1, парковка</div>
+    <div class="zone"><b>🛣 Шоссе между городами</b>Фонари, разметка, Автосалон «У Ветра» с витринами, Кафе «Уютное», Полицейский участок с камерой</div>
+    <div class="zone"><b>❄️ Северный город</b>ГорМаг (доставка еды), Качалка №1, Больница, площадь, зарядки, автобус №2</div>
+    <div class="zone"><b>🚉 Железная дорога (300 км)</b>Электричка: Юг → Северный → Лесной вокзал. Билет 150₽ в кассе, турникет, двери, интерьер вагонов</div>
+    <div class="zone"><b>🌲 Дикий лес</b>Холмы, озеро с пляжем, деревня Дубки, полустанок Поляна, конечная «Лесной вокзал»</div>
+  </div>
+</section>
+
+<section id="phone">
+  <div class="sec-head">
+    <h2>Телефон GorodOS</h2>
+    <p class="sub">Свой оператор, свой масштаб</p>
+  </div>
+  <div class="grid">
+    <div class="card"><span class="emoji">📶</span><h3>Оператор Gorod</h3><p>Тарифы: 2G — 10₽/мин (медленно), 3G — 20₽, 4G — 25₽, 5G — 30₽ (Мощный город). Пакеты гигабайт отдельно. Вдали от города — нет сети.</p></div>
+    <div class="card"><span class="emoji">🏦</span><h3>Банк</h3><p>Баланс, переводы, покупка квартиры, телепорты: «домой» и «вернуться на улицу», доставка еды.</p></div>
+    <div class="card"><span class="emoji">🚌</span><h3>Транспорт</h3><p>Живое расписание автобусов №1 (юг) и №2 (север) — узнаешь, через сколько приедет.</p></div>
+    <div class="card"><span class="emoji">📦</span><h3>Курьер</h3><p>Доставляй посылки по всему городу — от супермаркета до качалки. Награда 200–400₽ за доставку.</p></div>
+    <div class="card"><span class="emoji">🚆</span><h3>Электричка</h3><p>Билет 150₽ в кассе, турникет, удобные вагоны со столиками. 300 км через дикий лес за 3 минуты!</p></div>
+  </div>
+</section>
+
+<footer>
+  «Просто обычный город РП» · Версия 0.15.0 · создатель <b>steqan00</b> · тестер <b>Вероника</b><br>
+  <div class="foot-links">
+    <a href="https://www.roblox.com/games/103981113991707" target="_blank" rel="noopener">▶ Страница игры</a>
+  </div>
+  Официальный сайт-визитка сообщества Roblox.
+</footer>
+
+</body>
+</html>
